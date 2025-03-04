@@ -5,3 +5,7 @@ psutil
 pyinstaller==5.6.2
 pywin32==305 ; sys_platform == 'win32'
 cryptography
+certifi==2024.7.4  # 修复PYSEC-2024-230漏洞
+requests==2.32.0  # 修复GHSA-9wx4-h78v-vm56漏洞
+urllib3==2.2.2  # 修复GHSA-34jh-p97f-mpxf漏洞
+tornado==6.4.2  # 修复GHSA-8w49-h785-mj3c漏洞
