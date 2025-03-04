@@ -1,22 +1,25 @@
 # 网络安全工具集
 
-## 项目简介
-
-网络安全运维一体化工具集，专为安全研究人员和网络管理员设计。主要应用场景包括：
-- 企业内部网络监控与异常检测
-- 渗透测试中的信息收集阶段
-- 教学演示网络协议工作原理
-- 日常运维中的服务健康检查
-
-核心组件基于PyQt5框架开发，采用分层架构设计：
+## 架构设计
+```mermaid
+flowchart TD
+    A[GUI界面] --> B(ARP欺骗检测)
+    A --> C(端口扫描器)
+    A --> D(SSL分析器)
+    A --> E(DNS监控)
+    B --> F{Scapy抓包}
+    C --> G{多线程扫描}
+    D --> H{Cryptography解析}
+    E --> I{Libpcap捕获}
 ```
-└── 展示层（GUI界面）
-    └── 业务层（功能模块）
-        └── 数据层（Scapy/cryptography）
-```
-基于PyQt5开发的网络安防工具套件，集成ARP欺骗检测、SSL/TLS分析、端口扫描、DNS监控等实用功能。
 
-## 功能特性
+## 核心功能
+| 模块 | 技术特性 | 性能指标 |
+|------|----------|----------|
+| ARP检测 | Scapy实时抓包分析 | 15包/秒阈值 |
+| 端口扫描 | SYN/ACK多线程扫描 | 50并发线程 |
+| SSL分析 | TLS 1.3全支持 | OCSP装订验证 |
+| DNS监控 | TCP/UDP双协议解析 | 智能域名过滤 |
 
 ### 模块技术实现
 1. **ARP欺骗检测模块**  
@@ -70,7 +73,7 @@ sudo yum install libpcap-devel wireshark  # RHEL/CentOS
 brew install libpcap wireshark
 ```
 ```bash
-git clone https://github.com/your-repo/Network-Security.git
+git clone https://github.com/Sycun/Network-Security.git
 cd Network-Security
 pip install -r requirements.txt
 ```
@@ -225,18 +228,16 @@ sudo python main_window.py
 - 端口扫描请遵守当地网络安全法规
 - SSL分析支持标准443端口服务
 
-## 新增权限提示说明
-当程序检测到权限不足时，会主动弹出以下提示：
-1. **启动时权限检测**  
-   - 非管理员启动时显示黄色警告弹窗  
-   - 提示文字："部分功能需要管理员权限运行！\n请使用sudo重新启动程序以获得完整功能。"
+## 快速入门
+```bash
+# macOS环境安装（需Homebrew）
+brew install libpcap
+python3 -m pip install -r requirements.txt
+```
 
-2. **功能执行前二次确认**  
-   - 当尝试执行ARP检测等需要权限的功能时  
-   - 显示红色错误弹窗  
-   - 提示文字："ARP欺骗检测需要管理员权限！\n请使用sudo重新启动程序。"
-
-界面提示效果请参考项目文档中的`permission_warning.png`截图文件。
+## 界面预览
+![macOS运行截图](./screenshots/macos_ui.png)
+> macOS 12+系统运行效果（1920x1080分辨率）
 
 ## 许可证
 MIT License
