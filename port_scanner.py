@@ -1,8 +1,12 @@
 import socket
-import threading
-from queue import Queue
+import multiprocessing
+from multiprocessing import Queue
+import platform
 
-def port_scan(target, port):
+def port_scan(target, port, result_queue):
+    sock_type = socket.SOCK_STREAM
+    if platform.system() == 'Linux':
+        sock_type = socket.SOCK_STREAM | socket.SOCK_NONBLOCK
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
@@ -13,7 +17,7 @@ def port_scan(target, port):
     except Exception as e:
         pass
 
-def worker():
+def worker(queue):
     while True:
         port = queue.get()
         port_scan(target, port)
@@ -26,7 +30,7 @@ if __name__ == "__main__":
     
     queue = Queue()
     for _ in range(50):
-        t = threading.Thread(target=worker)
+        t = multiprocessing.Process(target=worker, args=(queue,))
         t.daemon = True
         t.start()
     

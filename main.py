@@ -1,5 +1,8 @@
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLineEdit, QLabel
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLineEdit, QLabel, QMessageBox, QApplication
+import os
+import sys
+import platform
+from PyQt6.QtCore import QThread, pyqtSignal
 import sys
 
 class ARPSpoofThread(QThread):
@@ -73,13 +76,19 @@ class MainWindow(QMainWindow):
         self.threads = []
 
     def check_privileges(self):
-        from PyQt5.QtWidgets import QMessageBox
+        from PyQt6.QtWidgets import QMessageBox
         import os
         
-        if os.name != 'nt' and os.geteuid() != 0:
-            QMessageBox.warning(self, '权限警告',
-                '部分功能需要管理员权限运行！\n请使用sudo重新启动程序以获得完整功能。',
-                QMessageBox.Ok)
+        if sys.platform == 'win32':
+            import ctypes
+            is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+            if not is_admin:
+                QMessageBox.warning(self, '权限警告', '部分功能需要管理员权限运行！\n请右键选择"以管理员身份运行"', QMessageBox.StandardButton.Ok)
+        else:
+            if os.geteuid() != 0:
+                QMessageBox.warning(self, '权限警告',
+                    '部分功能需要管理员权限运行！\n请使用sudo重新启动程序以获得完整功能。',
+                    QMessageBox.StandardButton.Ok)
     def init_ui(self):
         self.setWindowTitle('网络安全工具集')
         self.setGeometry(300, 300, 800, 600)
@@ -146,6 +155,46 @@ class PortScannerTab(QWidget):
         self.init_ui()
         self.scan_btn.clicked.connect(self.start_scan)
 
+    def init_ui(self):
+        layout = QVBoxLayout()
+        
+        # 输入字段
+        self.ip_input = QLineEdit()
+        self.start_port = QLineEdit()
+        self.end_port = QLineEdit()
+        
+        # 控制按钮
+        self.scan_btn = QPushButton('开始扫描')
+        
+        # 输出显示
+        self.output_area = QTextEdit()
+        self.output_area.setReadOnly(True)
+
+        layout.addWidget(QLabel('目标IP:'))
+        layout.addWidget(self.ip_input)
+        layout.addWidget(QLabel('起始端口:'))
+        layout.addWidget(self.start_port)
+        layout.addWidget(QLabel('结束端口:'))
+        layout.addWidget(self.end_port)
+        layout.addWidget(self.scan_btn)
+        layout.addWidget(self.output_area)
+        self.setLayout(layout)
+
+    def start_scan(self):
+        target = self.ip_input.text()
+        try:
+            start_port = int(self.start_port.text())
+            end_port = int(self.end_port.text())
+            
+            self.scan_thread = PortScannerThread(target, start_port, end_port)
+            self.scan_thread.output.connect(self.output_area.append)
+            self.scan_thread.start()
+            self.output_area.append(f'开始扫描 {target}:{start_port}-{end_port}')
+        except ValueError:
+            self.output_area.append('错误：端口号必须为数字')
+        except Exception as e:
+            self.output_area.append(f'扫描错误: {str(e)}')
+
 class ARPSpoofTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -155,13 +204,13 @@ class ARPSpoofTab(QWidget):
         self.stop_btn.clicked.connect(self.stop_detection)
 
     def start_detection(self):
-        from PyQt5.QtWidgets import QMessageBox
+        from PyQt6.QtWidgets import QMessageBox
         import os
         
         if os.geteuid() != 0:
             QMessageBox.critical(self, '权限不足',
                 'ARP欺骗检测需要管理员权限！\n请使用sudo重新启动程序。',
-                QMessageBox.Ok)
+                QMessageBox.StandardButton.Ok)
             return
         
         interface = self.interface_input.text()
@@ -178,7 +227,8 @@ class ARPSpoofTab(QWidget):
         layout = QVBoxLayout()
         
         self.interface_input = QLineEdit()
-        self.interface_input.setText(SystemAdapter.get_default_interface())
+        from netifaces import interfaces, AF_INET
+        self.interface_input.setText(interfaces()[0] if interfaces() else '')
         self.start_btn = QPushButton('开始检测')
         self.stop_btn = QPushButton('停止检测')
         self.output_area = QTextEdit()
@@ -259,9 +309,63 @@ class SSLAnalyzerTab(QWidget):
         layout.addWidget(self.output_area)
         self.setLayout(layout)
 
+    def start_scan(self):
+        target = self.ip_input.text()
+        try:
+            start_port = int(self.start_port.text())
+            end_port = int(self.end_port.text())
+            
+            self.scan_thread = PortScannerThread(target, start_port, end_port)
+            self.scan_thread.output.connect(self.output_area.append)
+            self.scan_thread.start()
+            self.output_area.append(f'开始扫描 {target}:{start_port}-{end_port}')
+        except ValueError:
+            self.output_area.append('错误：端口号必须为数字')
+        except Exception as e:
+            self.output_area.append(f'扫描错误: {str(e)}')
+
+class SudoAuthWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+        self.setWindowTitle('权限认证')
+
+    def init_ui(self):
+        layout = QVBoxLayout()
+        
+        self.username = QLineEdit(placeholderText='用户名')
+        self.password = QLineEdit(placeholderText='密码')
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.auth_btn = QPushButton('验证')
+        
+        layout.addWidget(QLabel('需要管理员权限'))
+        layout.addWidget(self.username)
+        layout.addWidget(self.password)
+        layout.addWidget(self.auth_btn)
+        self.setLayout(layout)
+        
+        self.auth_btn.clicked.connect(self.authenticate)
+
+    def authenticate(self):
+        if sys.platform != 'win32' and os.geteuid() != 0:
+            try:
+                os.execv('/usr/bin/sudo', ['sudo', sys.executable] + sys.argv)
+            except Exception as e:
+                QMessageBox.critical(self, '错误', f'认证失败: {str(e)}')
+        else:
+            self.close()
+
 if __name__ == '__main__':
-    from PyQt5.QtWidgets import QApplication
     app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
+    
+    if os.geteuid() != 0 and sys.platform != 'win32':
+        auth_window = SudoAuthWindow()
+        auth_window.show()
+        if app.exec_() == 0:
+            window = MainWindow()
+            window.show()
+    else:
+        window = MainWindow()
+        window.show()
+    
     sys.exit(app.exec_())

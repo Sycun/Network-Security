@@ -1,16 +1,26 @@
 # 网络安全工具集
 
-## 架构设计
+## 功能特性
+- ARP欺骗实时检测与告警
+- 多线程TCP端口扫描（支持1-65535端口范围）
+- SSL/TLS证书链分析（支持TLS 1.3）
+- DNS查询流量监控与统计分析
+- 图形化界面操作（基于PyQt6）
+- 自动权限检测与sudo认证
+
+## 核心模块
+![架构图](architecture.png)
 ```mermaid
-flowchart TD
-    A[GUI界面] --> B(ARP欺骗检测)
-    A --> C(端口扫描器)
-    A --> D(SSL分析器)
-    A --> E(DNS监控)
-    B --> F{Scapy抓包}
-    C --> G{多线程扫描}
-    D --> H{Cryptography解析}
-    E --> I{Libpcap捕获}
+flowchart LR
+  GUI[图形界面] --> ARP检测
+  GUI --> 端口扫描
+  GUI --> SSL分析
+  GUI --> DNS监控
+  ARP检测 --> Scapy
+  端口扫描 --> 多线程
+  SSL分析 --> Cryptography
+  DNS监控 --> pcap
+```
 ```
 
 ## 核心功能
@@ -58,9 +68,21 @@ flowchart TD
 - scapy
 - cryptography
 
-## 安装步骤
+## 安装指南
+```bash
+# 克隆仓库
+git clone https://github.com/Sycun/Network-Security.git
 
-### 多平台依赖安装
+# 安装依赖
+pip install -r requirements.txt
+
+# 系统依赖（Linux/macOS）
+sudo apt-get install libpcap-dev  # Ubuntu/Debian
+brew install libpcap             # macOS
+
+# 运行程序
+sudo python main.py              # Linux/macOS
+# Windows请以管理员身份运行
 ```bash
 # 通用依赖
 pip install -r requirements.txt
@@ -78,9 +100,28 @@ cd Network-Security
 pip install -r requirements.txt
 ```
 
-## 使用方法
+## 使用说明
+### ARP检测
+1. 选择网络接口（默认自动选择首选接口）
+2. 点击"开始检测"按钮
+3. 实时显示ARP响应频率和可疑活动
 
-### 通用操作指南
+### 端口扫描
+1. 输入目标IP地址（支持域名解析）
+2. 设置扫描端口范围（默认1-1024）
+3. 选择线程数量（默认50线程）
+4. 查看实时扫描结果
+
+### SSL/TLS分析
+1. 输入目标地址（格式：domain:port）
+2. 点击分析按钮获取证书链信息
+3. 查看支持的加密套件列表
+4. 验证OCSP装订状态
+
+### DNS监控
+1. 点击"开始监控"按钮
+2. 实时显示DNS查询记录
+3. 支持过滤特定域名类型（A/AAAA/CNAME）
 1. 启动程序
 ```bash
 # 普通用户模式
