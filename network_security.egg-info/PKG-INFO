@@ -1,0 +1,16 @@
+Metadata-Version: 2.2
+Name: network_security
+Version: 0.1
+Requires-Dist: PyQt6
+Requires-Dist: scapy==2.5.0
+Requires-Dist: pytest==8.1.1
+Requires-Dist: netifaces
+Requires-Dist: psutil
+Requires-Dist: pyinstaller==6.11.1
+Requires-Dist: pywin32==305; sys_platform == "win32"
+Requires-Dist: cryptography
+Requires-Dist: certifi==2024.7.4
+Requires-Dist: requests==2.32.0
+Requires-Dist: urllib3==2.2.2
+Requires-Dist: tornado==6.4.2
+Dynamic: requires-dist

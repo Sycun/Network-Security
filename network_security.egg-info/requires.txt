@@ -1,0 +1,14 @@
+PyQt6
+scapy==2.5.0
+pytest==8.1.1
+netifaces
+psutil
+pyinstaller==6.11.1
+cryptography
+certifi==2024.7.4
+requests==2.32.0
+urllib3==2.2.2
+tornado==6.4.2
+
+[:sys_platform == "win32"]
+pywin32==305

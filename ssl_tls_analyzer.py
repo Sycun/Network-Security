@@ -1,5 +1,5 @@
-from scapy.all import sniff, TLS
-from scapy.layers.ssl_tls import TLSClientHello
+from scapy.all import sniff
+from scapy.layers.tls.all import TLSClientHello
 import warnings
 
 def tls_handler(packet):

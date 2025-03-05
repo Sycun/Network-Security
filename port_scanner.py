@@ -23,12 +23,11 @@ def worker(queue):
         port_scan(target, port)
         queue.task_done()
 
-if __name__ == "__main__":
-    target = input("输入目标IP: ")
-    start_port = int(input("起始端口: "))
-    end_port = int(input("结束端口: "))
+def main(目标IP: str, 端口范围: str, 扫描类型: str, 超时时间: str):
+    target = 目标IP
+    start_port, end_port = map(int, 端口范围.split('-'))
     
-    queue = Queue()
+    queue = multiprocessing.Queue()
     for _ in range(50):
         t = multiprocessing.Process(target=worker, args=(queue,))
         t.daemon = True
@@ -38,3 +37,9 @@ if __name__ == "__main__":
         queue.put(port)
     
     queue.join()
+
+if __name__ == "__main__":
+    main(目标IP=input("输入目标IP: "),
+         端口范围=input("端口范围: "),
+         扫描类型=input("扫描类型: "),
+         超时时间=input("超时时间: "))
